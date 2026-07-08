@@ -122,16 +122,18 @@ function pick(d, keyword){
   const k = Object.keys(d).find(h => h.toLowerCase().replace(/[^a-z]/g,'').includes(keyword));
   return k ? d[k] : '';
 }
-/* convert Excel serial number (e.g. 45073) OR pass through a real date string */
+/* Normalize ANY date format the sheet may emit -> jj/mm/aaaa */
 function toDate(val){
   if(!has(val)) return '';
-  const s = String(val).trim();
-  if(/^\d+(\.\d+)?$/.test(s)){                 // pure number => Excel serial
-    const d = new Date(Date.UTC(1899,11,30) + Math.round(+s)*86400000);
+  var s = String(val).trim();
+  if(/^\d+(\.\d+)?$/.test(s)){
+    var d = new Date(Date.UTC(1899,11,30) + Math.round(+s)*86400000);
     return String(d.getUTCDate()).padStart(2,'0')+'/'
          + String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear();
   }
-  return s;                                    // already a date string
+  var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(iso){ return iso[3]+'/'+iso[2]+'/'+iso[1]; }
+  return s.split(' ')[0];
 }
 
 function scoreClass(v){v=+v; return v>=80?'green':v>=65?'orange':'red';}
@@ -176,13 +178,13 @@ function render(d){
 
   const tiles=[];
   if(has(d.date_formation))
-    tiles.push('<div class="tile"><div class="t">Date de formation</div><div class="v">'+d.date_formation+'</div></div>');
+    tiles.push('<div class="tile"><div class="t">Date de formation</div><div class="v">'+toDate(d.date_formation)+'</div></div>');
   if(has(d.date_visite_medicale)){
-    const exp=parseDate(d.validite_medicale), expired=exp&&exp<new Date();
-    const note = has(d.validite_medicale)
-      ? (expired?'<div class="n exp">&#9888; Expiré le '+d.validite_medicale+'</div>'
-                :'<div class="n">Valide jusqu\'au '+d.validite_medicale+'</div>') : '';
-    tiles.push('<div class="tile"><div class="t">Visite médicale</div><div class="v">'+d.date_visite_medicale+'</div>'+note+'</div>');
+    const vm=toDate(d.validite_medicale); const exp=parseDate(vm), expired=exp&&exp<new Date();
+    const note = has(vm)
+      ? (expired?'<div class="n exp">&#9888; Expiré le '+vm+'</div>'
+                :'<div class="n">Valide jusqu\'au '+vm+'</div>') : '';
+    tiles.push('<div class="tile"><div class="t">Visite médicale</div><div class="v">'+toDate(d.date_visite_medicale)+'</div>'+note+'</div>');
   }
   if(has(d.tournee))
     tiles.push('<div class="tile"><div class="t">Tournée d\'affectation</div><div class="v">'+d.tournee+'</div></div>');
