@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche Conducteur</title>
+<style>
+  :root{
+    --navy:#1f3864; --navy-2:#274a8a; --ink:#1c2431; --muted:#6b7686;
+    --line:#e4e8ef; --bg:#eef1f6; --card:#ffffff;
+    --green:#1a9d5a; --green-bg:#e5f5ec;
+    --orange:#e08a1e; --orange-bg:#fdf1de;
+    --red:#d64550; --red-bg:#fde7e9;
+    --radius:14px; --shadow:0 6px 24px rgba(20,40,80,.08);
+    --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);
+    min-height:100vh;display:flex;justify-content:center;padding:24px 14px}
+  .wrap{width:100%;max-width:820px}
+
+  /* states */
+  .state{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:48px 28px;text-align:center}
+  .state h2{color:var(--navy);margin-bottom:8px}
+  .state p{color:var(--muted);font-size:14px}
+
+  /* card */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .topbar{height:6px;background:linear-gradient(90deg,var(--navy),var(--navy-2))}
+  .head{display:flex;gap:18px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--line)}
+  .photo{width:76px;height:76px;border-radius:12px;object-fit:cover;background:#dfe4ec;
+    border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:24px;font-weight:700}
+  .head .name{font-size:20px;font-weight:700;color:var(--navy);line-height:1.2}
+  .head .sub{font-size:13px;color:var(--muted);margin-top:3px}
+  .head .sub b{color:var(--ink);font-weight:600}
+  .statut{margin-left:auto;flex:none}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+    padding:6px 12px;border-radius:999px;white-space:nowrap}
+  .badge.green{background:var(--green-bg);color:var(--green)}
+  .badge.orange{background:var(--orange-bg);color:var(--orange)}
+  .badge.red{background:var(--red-bg);color:var(--red)}
+
+  .section-label{font-size:11px;letter-spacing:.08em;font-weight:700;color:var(--muted);
+    text-transform:uppercase;padding:18px 24px 6px}
+
+  .info{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 24px 4px}
+  .tile{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .tile .t{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+  .tile .v{font-size:16px;font-weight:700;color:var(--navy);margin-top:6px}
+  .tile .n{font-size:11px;color:var(--green);margin-top:6px;font-weight:600}
+  .tile .n.exp{color:var(--red)}
+
+  .perf{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:6px 24px 24px}
+  .score{border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+  .score .t{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);
+    text-transform:uppercase;min-height:28px}
+  .gauge{position:relative;width:96px;height:96px;margin:12px auto 8px}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .num{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center}
+  .gauge .num b{font-size:26px;line-height:1;color:var(--ink)}
+  .gauge .num span{font-size:11px;color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px}
+
+  .global{margin:0 24px 24px;border:1px solid var(--line);border-radius:12px;
+    padding:18px;display:flex;align-items:center;gap:16px}
+  .shield{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;flex:none;font-size:22px}
+  .global .g-t{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+  .global .g-v{font-size:18px;font-weight:800;margin-top:2px}
+  .global .g-n{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;
+    padding:12px 24px;background:var(--navy);color:#cbd6ea;font-size:11px}
+  .foot b{color:#fff}
+
+  @media(max-width:560px){
+    .info{grid-template-columns:1fr}
+    .perf{grid-template-columns:1fr}
+    .head{flex-wrap:wrap}
+    .statut{margin-left:0;order:3;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="state"><h2>Chargement…</h2></div>
+</div>
+
+<script>
+/* ============================================================
+   DATA SOURCE
+   For now: sample data embedded below.
+   LATER (Phase 2 live): replace loadData() body with a fetch()
+   of your Google Sheets published CSV URL. Nothing else changes.
+   ============================================================ */
+const SAMPLE = [
+  {id_token:"DAN-il0pqq",matricule:"1258",nom:"Mohamed 1",fonction:"CL/CV/VD",photo_url:"",date_formation:"15/03/2023",date_visite_medicale:"12/04/2024",validite_medicale:"12/04/2025",tournee:"Tournée du Nord 123",score_ivms:92,score_theorique:85,score_pratique:78,niveau_risque:"Faible risque",statut:"Actif"},
+  {id_token:"DAN-irtqc4",matricule:"1259",nom:"Mohamed 2",fonction:"CV/VD",photo_url:"",date_formation:"03/06/2023",date_visite_medicale:"20/01/2024",validite_medicale:"20/01/2025",tournee:"Tournée du Sud 045",score_ivms:74,score_theorique:68,score_pratique:71,niveau_risque:"Risque moyen",statut:"Actif"},
+  {id_token:"DAN-owgbvl",matricule:"1260",nom:"Mohamed 3",fonction:"CL/VD",photo_url:"",date_formation:"22/09/2022",date_visite_medicale:"05/11/2023",validite_medicale:"05/11/2024",tournee:"Tournée Centre 210",score_ivms:61,score_theorique:55,score_pratique:49,niveau_risque:"Risque élevé",statut:"Actif"},
+  {id_token:"DAN-0vmgu4",matricule:"1261",nom:"Mohamed 4",fonction:"VD",photo_url:"",date_formation:"11/02/2024",date_visite_medicale:"18/03/2024",validite_medicale:"18/03/2025",tournee:"Tournée du Nord 118",score_ivms:88,score_theorique:79,score_pratique:82,niveau_risque:"Faible risque",statut:"Actif"},
+  {id_token:"DAN-nhsfl5",matricule:"1262",nom:"Mohamed 5",fonction:"CL/CV",photo_url:"",date_formation:"30/07/2023",date_visite_medicale:"09/09/2024",validite_medicale:"09/09/2025",tournee:"Tournée Est 302",score_ivms:95,score_theorique:90,score_pratique:88,niveau_risque:"Faible risque",statut:"Actif"},
+  {id_token:"DAN-7ni408",matricule:"1263",nom:"Mohamed 6",fonction:"CV/VD",photo_url:"",date_formation:"14/04/2023",date_visite_medicale:"27/06/2024",validite_medicale:"27/06/2025",tournee:"Tournée du Sud 051",score_ivms:70,score_theorique:64,score_pratique:66,niveau_risque:"Risque moyen",statut:"Actif"},
+  {id_token:"DAN-mulo46",matricule:"1264",nom:"Mohamed 7",fonction:"CL/VD",photo_url:"",date_formation:"08/12/2022",date_visite_medicale:"15/02/2024",validite_medicale:"15/02/2025",tournee:"Tournée Centre 205",score_ivms:83,score_theorique:77,score_pratique:74,niveau_risque:"Faible risque",statut:"Actif"},
+  {id_token:"DAN-nclf4v",matricule:"1265",nom:"Mohamed 8",fonction:"VD",photo_url:"",date_formation:"19/05/2024",date_visite_medicale:"19/05/2024",validite_medicale:"19/05/2025",tournee:"Tournée du Nord 130",score_ivms:57,score_theorique:52,score_pratique:60,niveau_risque:"Risque élevé",statut:"Suspendu"},
+  {id_token:"DAN-nqwy9h",matricule:"1266",nom:"Mohamed 9",fonction:"CL/CV/VD",photo_url:"",date_formation:"25/10/2022",date_visite_medicale:"03/08/2024",validite_medicale:"03/08/2025",tournee:"Tournée Est 315",score_ivms:90,score_theorique:86,score_pratique:91,niveau_risque:"Faible risque",statut:"Actif"},
+  {id_token:"DAN-jjvt5h",matricule:"1267",nom:"Mohamed 10",fonction:"CV/VD",photo_url:"",date_formation:"07/01/2024",date_visite_medicale:"11/12/2024",validite_medicale:"11/12/2025",tournee:"Tournée du Sud 060",score_ivms:66,score_theorique:71,score_pratique:58,niveau_risque:"Risque moyen",statut:"Actif"},
+];
+
+async function loadData(){
+  // --- PHASE 2 (live) SWAP: uncomment & set your URL ---
+  // const CSV_URL = "https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv";
+  // const txt = await (await fetch(CSV_URL)).text();
+  // return parseCSV(txt);
+  return SAMPLE;
+}
+
+/* CSV parser kept ready for Phase 2 */
+function parseCSV(txt){
+  const rows=[]; let f='',row=[],q=false;
+  for(let i=0;i<txt.length;i++){const c=txt[i];
+    if(q){ if(c==='"'&&txt[i+1]==='"'){f+='"';i++;} else if(c==='"'){q=false;} else f+=c; }
+    else{ if(c==='"')q=true; else if(c===','){row.push(f);f='';}
+      else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
+      else if(c!=='\r')f+=c; } }
+  if(f.length||row.length){row.push(f);rows.push(row);}
+  const head=rows.shift().map(h=>h.trim());
+  return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||'').trim()])));
+}
+
+/* ---- color logic ---- */
+function scoreClass(v){v=+v; return v>=80?'green':v>=65?'orange':'red';}
+function scoreTag(v){v=+v; return v>=80?'Satisfaisant':v>=65?'À améliorer':'Insuffisant';}
+function riskClass(r){r=(r||'').toLowerCase();
+  return r.includes('faible')?'green':r.includes('moyen')?'orange':'red';}
+function parseDate(d){const [x,m,y]=(d||'').split('/');return x?new Date(+y,+m-1,+x):null;}
+
+const COL={green:'var(--green)',orange:'var(--orange)',red:'var(--red)'};
+const BG ={green:'var(--green-bg)',orange:'var(--orange-bg)',red:'var(--red-bg)'};
+
+function gauge(v){
+  const cls=scoreClass(v), r=42, c=2*Math.PI*r, off=c*(1-(+v)/100);
+  return `<div class="gauge">
+    <svg width="96" height="96" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r="${r}" fill="none" stroke="#eef1f6" stroke-width="8"/>
+      <circle cx="48" cy="48" r="${r}" fill="none" stroke="${COL[cls]}" stroke-width="8"
+        stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/>
+    </svg>
+    <div class="num"><b>${v}</b><span>/100</span></div></div>`;
+}
+
+function scoreCard(title,v){
+  const cls=scoreClass(v);
+  return `<div class="score"><div class="t">${title}</div>${gauge(v)}
+    <span class="tag" style="background:${BG[cls]};color:${COL[cls]}">${scoreTag(v)}</span></div>`;
+}
+
+function render(d){
+  const app=document.getElementById('app');
+  const stCls = d.statut==='Actif'?'green':d.statut==='Suspendu'?'red':'orange';
+  const rCls  = riskClass(d.niveau_risque);
+  const initials=(d.nom||'?').split(' ').map(w=>w[0]).slice(0,2).join('');
+  const photo = d.photo_url
+    ? `<img class="photo" src="${d.photo_url}" alt="">`
+    : `<div class="photo">${initials}</div>`;
+
+  // medical expiry check
+  const exp=parseDate(d.validite_medicale), today=new Date();
+  const expired = exp && exp < today;
+  const medNote = expired
+    ? `<div class="n exp">⚠ Expiré le ${d.validite_medicale}</div>`
+    : `<div class="n">Valide jusqu'au ${d.validite_medicale}</div>`;
+
+  app.innerHTML=`<div class="card">
+    <div class="topbar"></div>
+    <div class="head">
+      ${photo}
+      <div>
+        <div class="name">${d.nom}</div>
+        <div class="sub">Matricule <b>${d.matricule}</b> · ${d.fonction}</div>
+        <div class="sub">ID <b>${d.id_token}</b></div>
+      </div>
+      <div class="statut"><span class="badge ${stCls}">● ${d.statut}</span></div>
+    </div>
+
+    <div class="section-label">Informations</div>
+    <div class="info">
+      <div class="tile"><div class="t">Date de formation</div>
+        <div class="v">${d.date_formation}</div></div>
+      <div class="tile"><div class="t">Visite médicale</div>
+        <div class="v">${d.date_visite_medicale}</div>${medNote}</div>
+      <div class="tile"><div class="t">Tournée d'affectation</div>
+        <div class="v">${d.tournee}</div></div>
+      <div class="tile"><div class="t">Fonction</div>
+        <div class="v">${d.fonction}</div></div>
+    </div>
+
+    <div class="section-label">Performances</div>
+    <div class="perf">
+      ${scoreCard('Score IVMS (S-1)',d.score_ivms)}
+      ${scoreCard('Évaluation théorique',d.score_theorique)}
+      ${scoreCard('Évaluation pratique',d.score_pratique)}
+    </div>
+
+    <div class="global">
+      <div class="shield" style="background:${BG[rCls]};color:${COL[rCls]}">🛡</div>
+      <div>
+        <div class="g-t">Niveau de risque global</div>
+        <div class="g-v" style="color:${COL[rCls]}">${d.niveau_risque}</div>
+        <div class="g-n">${rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':'Action corrective requise.'}</div>
+      </div>
+    </div>
+
+    <div class="foot"><span>Permis Interne de Conduite · <b>CENTRALE DANONE</b></span>
+      <span>WISE²</span></div>
+  </div>`;
+}
+
+function notFound(id){
+  document.getElementById('app').innerHTML=
+    `<div class="state"><h2>Conducteur introuvable</h2>
+     <p>Aucun conducteur ne correspond à l'identifiant <b>${id||'(vide)'}</b>.<br>
+     Vérifiez le lien du QR code.</p></div>`;
+}
+
+(async function(){
+  const id=new URLSearchParams(location.search).get('id');
+  let data;
+  try{ data=await loadData(); }
+  catch(e){ document.getElementById('app').innerHTML=
+    `<div class="state"><h2>Erreur de chargement</h2><p>Impossible de lire les données.</p></div>`; return; }
+
+  if(!id){ // no id -> show first driver as demo + hint
+    render(data[0]);
+    return;
+  }
+  const d=data.find(x=>x.id_token===id);
+  d ? render(d) : notFound(id);
+})();
+</script>
+</body>
+</html>
