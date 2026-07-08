@@ -122,6 +122,12 @@ function pick(d, keyword){
   const k = Object.keys(d).find(h => h.toLowerCase().replace(/[^a-z]/g,'').includes(keyword));
   return k ? d[k] : '';
 }
+/* match a column containing ALL given fragments (bulletproof for accents/underscores) */
+function pickAll(d){
+  const frags=[].slice.call(arguments,1);
+  const k=Object.keys(d).find(h=>{const n=h.toLowerCase().replace(/[^a-z]/g,'');return frags.every(f=>n.includes(f));});
+  return k?d[k]:'';
+}
 /* Normalize ANY date format the sheet may emit -> jj/mm/aaaa */
 function toDate(val){
   if(!has(val)) return '';
@@ -187,9 +193,9 @@ function render(d){
     tiles.push('<div class="tile"><div class="t">Visite médicale</div><div class="v">'+toDate(d.date_visite_medicale)+'</div>'+note+'</div>');
   }
   if(has(d.tournee)){
-    var rt = riskClass(pick(d,'risktourne'));
-    var rtStyle = has(pick(d,'risktourne')) ? ' style="background:'+BG[rt]+';border-color:'+COL[rt]+'"' : '';
-    var rtVal = has(pick(d,'risktourne')) ? ' style="color:'+COL[rt]+'"' : '';
+    var rt = riskClass(pickAll(d,'risk','tourn'));
+    var rtStyle = has(pickAll(d,'risk','tourn')) ? ' style="background:'+BG[rt]+';border-color:'+COL[rt]+'"' : '';
+    var rtVal = has(pickAll(d,'risk','tourn')) ? ' style="color:'+COL[rt]+'"' : '';
     tiles.push('<div class="tile"'+rtStyle+'><div class="t">Tournée d\'affectation</div><div class="v"'+rtVal+'>'+d.tournee+'</div></div>');
   }
   if(has(d.agence))
