@@ -186,8 +186,12 @@ function render(d){
                 :'<div class="n">Valide jusqu\'au '+vm+'</div>') : '';
     tiles.push('<div class="tile"><div class="t">Visite médicale</div><div class="v">'+toDate(d.date_visite_medicale)+'</div>'+note+'</div>');
   }
-  if(has(d.tournee))
-    tiles.push('<div class="tile"><div class="t">Tournée d\'affectation</div><div class="v">'+d.tournee+'</div></div>');
+  if(has(d.tournee)){
+    var rt = riskClass(pick(d,'risktourne'));
+    var rtStyle = has(pick(d,'risktourne')) ? ' style="background:'+BG[rt]+';border-color:'+COL[rt]+'"' : '';
+    var rtVal = has(pick(d,'risktourne')) ? ' style="color:'+COL[rt]+'"' : '';
+    tiles.push('<div class="tile"'+rtStyle+'><div class="t">Tournée d\'affectation</div><div class="v"'+rtVal+'>'+d.tournee+'</div></div>');
+  }
   if(has(d.agence))
     tiles.push('<div class="tile"><div class="t">Agence</div><div class="v">'+d.agence+'</div></div>');
 
