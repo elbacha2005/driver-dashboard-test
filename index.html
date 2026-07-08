@@ -139,6 +139,12 @@ function toDate(val){
   }
   var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(iso){ return iso[3]+'/'+iso[2]+'/'+iso[1]; }
+  // Long French text date e.g. "jeudi, août 12, 2021"
+  var MO={janvier:1,'février':2,fevrier:2,mars:3,avril:4,mai:5,juin:6,juillet:7,'août':8,aout:8,septembre:9,octobre:10,novembre:11,'décembre':12,decembre:12};
+  var fr = s.toLowerCase().match(/([a-zà-ÿ]+)\s+(\d{1,2}),?\s+(\d{4})/);
+  if(fr && MO[fr[1]]){
+    return String(fr[2]).padStart(2,'0')+'/'+String(MO[fr[1]]).padStart(2,'0')+'/'+fr[3];
+  }
   return s.split(' ')[0];
 }
 
