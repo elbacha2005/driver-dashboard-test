@@ -105,7 +105,9 @@ function parseCSV(txt){
       else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
       else if(c!=='\r')f+=c; } }
   if(f.length||row.length){row.push(f);rows.push(row);}
-  const head=rows.shift().map(h=>h.replace(/^\ufeff/,'').trim());
+  // skip any leading blank rows so the REAL header row is used
+  while(rows.length && rows[0].every(function(x){return !x || !x.replace(/\ufeff/,'').trim();})) rows.shift();
+  const head=rows.shift().map(h=>h.replace(/\ufeff/g,'').trim());
   return rows.filter(r=>r.some(x=>x&&x.trim()))
              .map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||'').trim()])));
 }
@@ -236,7 +238,7 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v4-fieldmatch</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v5-skipblank</span></div></div>';
   app.innerHTML=html;
 }
 
