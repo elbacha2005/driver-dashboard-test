@@ -229,15 +229,22 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v2-dates</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v3-diag</span></div></div>';
   app.innerHTML=html;
 }
 
-function notFound(id){
+function notFound(id, data){
+  var n = data ? data.length : 0;
+  var toks = data ? data.map(function(d){return (d.id_token||'').trim();}).filter(Boolean) : [];
+  var list = toks.slice(0,12).join(', ') + (toks.length>12?' …':'');
   document.getElementById('app').innerHTML=
     '<div class="state"><h2>Conducteur introuvable</h2>'
-    +'<p>Aucun conducteur ne correspond à l\'identifiant <b>'+(id||'(vide)')+'</b>.<br>'
-    +'Vérifiez le lien du QR code.</p></div>';
+    +'<p>Identifiant recherché : <b>'+(id||'(vide)')+'</b></p>'
+    +'<p style="margin-top:14px;font-size:13px">Diagnostic : <b>'+n+'</b> conducteurs chargés depuis la feuille.<br>'
+    +'Tokens présents dans la feuille lue :</p>'
+    +'<p style="font-size:12px;color:#1f3864;word-break:break-all;margin-top:6px">'+(list||'(aucun)')+'</p>'
+    +'<p style="margin-top:14px;font-size:12px;color:#6b7686">Si votre token n\'apparaît pas ci-dessus, le dashboard lit une AUTRE feuille que celle de vos QR codes.</p>'
+    +'</div>';
 }
 
 (async function(){
@@ -249,7 +256,7 @@ function notFound(id){
   const id=new URLSearchParams(location.search).get('id');
   if(!id){ render(data[0]); return; }
   const d=data.find(x=>(x.id_token||'').trim()===id.trim());
-  d ? render(d) : notFound(id);
+  d ? render(d) : notFound(id, data);
 })();
 </script>
 </body>
