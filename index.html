@@ -105,9 +105,16 @@ function parseCSV(txt){
       else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
       else if(c!=='\r')f+=c; } }
   if(f.length||row.length){row.push(f);rows.push(row);}
-  const head=rows.shift().map(h=>h.trim());
+  const head=rows.shift().map(h=>h.replace(/^\ufeff/,'').trim());
   return rows.filter(r=>r.some(x=>x&&x.trim()))
              .map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||'').trim()])));
+}
+/* get a field by exact key OR by normalized (accent/space/underscore-insensitive) match */
+function field(d, name){
+  if(d[name]!==undefined) return d[name];
+  const target=name.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const k=Object.keys(d).find(h=>h.toLowerCase().replace(/[^a-z0-9]/g,'')===target);
+  return k?d[k]:'';
 }
 async function loadData(){
   const res = await fetch(CSV_URL);
@@ -214,7 +221,7 @@ function render(d){
   let html='<div class="card"><div class="topbar"></div><div class="head">'+photo
     +'<div><div class="name">'+(d.nom||'—')+'</div>'
     +'<div class="sub">'+idLine+fnLine+'</div>'
-    +'<div class="sub">ID <b>'+d.id_token+'</b></div>'
+    +'<div class="sub">ID <b>'+field(d,'id_token')+'</b></div>'
     +hireLine
     +'</div>'
     +'<div class="statut"><span class="badge '+stCls+'">&#9679; '+(d.statut||'—')+'</span></div></div>';
@@ -229,13 +236,13 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v3-diag</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v4-fieldmatch</span></div></div>';
   app.innerHTML=html;
 }
 
 function notFound(id, data){
   var n = data ? data.length : 0;
-  var toks = data ? data.map(function(d){return (d.id_token||'').trim();}).filter(Boolean) : [];
+  var toks = data ? data.map(function(d){return (field(d,'id_token')||'').trim();}).filter(Boolean) : [];
   var list = toks.slice(0,12).join(', ') + (toks.length>12?' …':'');
   document.getElementById('app').innerHTML=
     '<div class="state"><h2>Conducteur introuvable</h2>'
@@ -255,7 +262,7 @@ function notFound(id, data){
     +'<p>Impossible de lire les données du conducteur.<br>Vérifiez le lien CSV et réessayez.</p></div>'; return; }
   const id=new URLSearchParams(location.search).get('id');
   if(!id){ render(data[0]); return; }
-  const d=data.find(x=>(x.id_token||'').trim()===id.trim());
+  const d=data.find(x=>(field(x,'id_token')||'').trim()===id.trim());
   d ? render(d) : notFound(id, data);
 })();
 </script>
