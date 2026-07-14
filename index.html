@@ -95,7 +95,7 @@
 /* ============================================================
    >>> COLLEZ ICI le lien CSV publié de la table de TEST (Mohamed) <<<
    ============================================================ */
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqTdB7WYp9w6oO7rS3rjGJDRF6RIUrT_yQF6cdVRKJLh8ZxaVvevbTtljg76PKTX44nhjC1FZ96o7F/pubhtml?gid=2100260314&single=true";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqTdB7WYp9w6oO7rS3rjGJDRF6RIUrT_yQF6cdVRKJLh8ZxaVvevbTtljg76PKTX44nhjC1FZ96o7F/pub?gid=2100260314&single=true&output=csv";
 
 function parseCSV(txt){
   const rows=[]; let f='',row=[],q=false;
@@ -121,7 +121,12 @@ function field(d, name){
 async function loadData(){
   const res = await fetch(CSV_URL);
   if(!res.ok) throw new Error("fetch failed");
-  return parseCSV(await res.text());
+  const txt = await res.text();
+  // Garde-fou : si on recoit une page HTML au lieu d'un CSV, on le dit clairement.
+  if(/^\s*</.test(txt) || txt.slice(0,2000).indexOf("<html") !== -1){
+    throw new Error("HTML_NOT_CSV");
+  }
+  return parseCSV(txt);
 }
 
 const has = v => v!==undefined && v!==null && String(v).trim()!=='';
@@ -238,7 +243,7 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v5-skipblank</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v7-csvfix</span></div></div>';
   app.innerHTML=html;
 }
 
@@ -259,9 +264,12 @@ function notFound(id, data){
 (async function(){
   let data;
   try{ data=await loadData(); }
-  catch(e){ document.getElementById('app').innerHTML=
-    '<div class="state"><h2>Erreur de chargement</h2>'
-    +'<p>Impossible de lire les données du conducteur.<br>Vérifiez le lien CSV et réessayez.</p></div>'; return; }
+  catch(e){
+    var msg = (e && e.message === "HTML_NOT_CSV")
+      ? "Le lien fournit une PAGE HTML, pas un CSV.<br>Le lien doit se terminer par : <b>/pub?gid=...&single=true&output=csv</b><br>(et non /pubhtml)"
+      : "Impossible de lire les données du conducteur.<br>Vérifiez le lien CSV et réessayez.";
+    document.getElementById('app').innerHTML=
+    '<div class="state"><h2>Erreur de chargement</h2><p>'+msg+'</p></div>'; return; }
   const id=new URLSearchParams(location.search).get('id');
   if(!id){ render(data[0]); return; }
   const d=data.find(x=>(field(x,'id_token')||'').trim()===id.trim());
