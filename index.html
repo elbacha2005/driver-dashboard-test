@@ -164,8 +164,17 @@ function toDate(val){
 
 function scoreClass(v){v=+v; return v>=80?'green':v>=65?'orange':'red';}
 function scoreTag(v){v=+v; return v>=80?'Satisfaisant':v>=65?'À améliorer':'Insuffisant';}
-function riskClass(r){r=(r||'').toLowerCase();
-  return r.includes('faible')?'green':r.includes('moyen')?'orange':(r.includes('élev')||r.includes('elev'))?'red':'grey';}
+function riskClass(r){
+  r=(r||'').toLowerCase().trim();
+  // valeurs de "niveau_risque"
+  if(r.includes('faible')) return 'green';
+  if(r.includes('moyen'))  return 'orange';
+  if(r.includes('élev') || r.includes('elev')) return 'red';
+  // valeurs de "risk_tournée"  (Normale / HR = Haut Risque)
+  if(r === 'normale' || r === 'normal') return 'green';
+  if(r === 'hr' || r.includes('haut risque')) return 'red';
+  return 'grey';
+}
 function parseDate(d){const p=(d||'').split('/');return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):null;}
 const COL={green:'var(--green)',orange:'var(--orange)',red:'var(--red)',grey:'var(--muted)'};
 const BG ={green:'var(--green-bg)',orange:'var(--orange-bg)',red:'var(--red-bg)',grey:'#eef1f6'};
@@ -243,7 +252,7 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v7-csvfix</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v8-risktour</span></div></div>';
   app.innerHTML=html;
 }
 
