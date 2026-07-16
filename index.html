@@ -119,7 +119,9 @@ function field(d, name){
   return k?d[k]:'';
 }
 async function loadData(){
-  const res = await fetch(CSV_URL);
+  // anti-cache : force un telechargement frais a chaque scan
+  const url = CSV_URL + "&_cb=" + Date.now();
+  const res = await fetch(url, {cache: "no-store"});
   if(!res.ok) throw new Error("fetch failed");
   const txt = await res.text();
   // Garde-fou : si on recoit une page HTML au lieu d'un CSV, on le dit clairement.
@@ -252,7 +254,7 @@ function render(d){
       +'<div class="g-v" style="color:'+COL[rCls]+'">'+d.niveau_risque+'</div>'
       +'<div class="g-n">'+(rCls==='green'?'Conducteur conforme aux standards sécurité.':rCls==='orange'?'Vigilance recommandée.':rCls==='red'?'Action corrective requise.':'')+'</div></div></div>';
 
-  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v9-sheetB</span></div></div>';
+  html+='<div class="foot"><span>Permis Interne de Conduite &middot; <b>CENTRALE DANONE</b></span><span>WISE&#178; &middot; v10-nocache</span></div></div>';
   app.innerHTML=html;
 }
 
