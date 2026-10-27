@@ -164,8 +164,8 @@ function toDate(val){
   return s.split(' ')[0];
 }
 
-function scoreClass(v){v=+v; return v>=80?'green':v>=65?'orange':'red';}
-function scoreTag(v){v=+v; return v>=80?'Satisfaisant':v>=65?'À améliorer':'Insuffisant';}
+function scoreClass(v){v=+v; return v>=80?'green':v>=65?'orange':'grey';}
+function scoreTag(v){v=+v; return v>=80?'Satisfaisant':v>=65?'À améliorer':'';}
 function riskClass(r){
   r=(r||'').toLowerCase().trim();
   // valeurs de "niveau_risque"
@@ -192,8 +192,9 @@ function gauge(v){
 function scoreCard(title,v){
   if(!has(v)) return "";
   const cls=scoreClass(v);
+  const tag=scoreTag(v);
   return '<div class="score"><div class="t">'+title+'</div>'+gauge(v)
-    +'<span class="tag" style="background:'+BG[cls]+';color:'+COL[cls]+'">'+scoreTag(v)+'</span></div>';
+    +(tag?'<span class="tag" style="background:'+BG[cls]+';color:'+COL[cls]+'">'+tag+'</span>':'')+'</div>';
 }
 
 function render(d){
