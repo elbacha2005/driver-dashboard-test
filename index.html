@@ -171,10 +171,10 @@ function riskClass(r){
   // valeurs de "niveau_risque"
   if(r.includes('faible')) return 'green';
   if(r.includes('moyen'))  return 'orange';
-  if(r.includes('élev') || r.includes('elev')) return 'red';
+  if(r.includes('élev') || r.includes('elev')) return 'grey';
   // valeurs de "risk_tournée"  (Normale / HR = Haut Risque)
   if(r === 'normale' || r === 'normal') return 'green';
-  if(r === 'hr' || r.includes('haut risque')) return 'red';
+  if(r === 'hr' || r.includes('haut risque')) return 'grey';
   return 'grey';
 }
 function parseDate(d){const p=(d||'').split('/');return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):null;}
